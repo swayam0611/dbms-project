@@ -1,0 +1,16 @@
+# Virtual Environment
+.venv/
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.DS_Store
+
+# Temporary images
+*.png
+*.jpg
