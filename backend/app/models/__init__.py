@@ -2,7 +2,7 @@ from app.models.infrastructure import Pincode, Hospital, Department, Ward, Room,
 from app.models.employee import Employee, Doctor, Nurse, Receptionist
 from app.models.patient import Patient, EmergencyContact, Allergy
 from app.models.clinical import Admission, Appointment, Consultation, Disease, Diagnosis
-from app.models.pharmacy import Medicine, PharmacyInventory, Prescription, PrescriptionItem
+from app.models.pharmacy import Medicine, PharmacyInventory, Prescription, PrescriptionItem, PharmacyBill, PharmacyBillItem, PharmacyPayment
 from app.models.billing import Billing, Payment
 
 __all__ = [
@@ -11,5 +11,6 @@ __all__ = [
     "Patient", "EmergencyContact", "Allergy",
     "Admission", "Appointment", "Consultation", "Disease", "Diagnosis",
     "Medicine", "PharmacyInventory", "Prescription", "PrescriptionItem",
+    "PharmacyBill", "PharmacyBillItem", "PharmacyPayment",
     "Billing", "Payment"
 ]

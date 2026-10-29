@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Clock, User, Filter, Plus, 
-  Search, XCircle, CheckCircle, AlertCircle, RefreshCw 
+  Search, XCircle, CheckCircle, AlertCircle, RefreshCw, X 
 } from 'lucide-react';
 import { 
   getAppointments, getDoctors, getDepartments, 
@@ -313,7 +313,9 @@ export default function AppointmentsView() {
           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 border border-slate-100 animate-in fade-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h2 className="text-lg font-bold text-slate-900">Book Patient Appointment</h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             {modalError && (

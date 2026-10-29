@@ -359,3 +359,50 @@ CREATE TABLE payments (
     INDEX idx_payment_time (payment_time),
     INDEX idx_trans_status (transaction_status)
 ) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 25. Pharmacy Bills (Dedicated Dispensary Billing)
+-- -----------------------------------------------------------------------------
+CREATE TABLE pharmacy_bills (
+    pharmacy_bill_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    doctor_id INT NULL,
+    prescription_id INT NULL,
+    subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    payment_status ENUM('Pending', 'Partially_Paid', 'Paid') DEFAULT 'Paid',
+    bill_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pbill_patient FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,
+    CONSTRAINT fk_pbill_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id) ON DELETE SET NULL,
+    CONSTRAINT fk_pbill_rx FOREIGN KEY (prescription_id) REFERENCES prescriptions(prescription_id) ON DELETE SET NULL,
+    INDEX idx_pbill_date (bill_date),
+    INDEX idx_pbill_status (payment_status)
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 26. Pharmacy Bill Items (Line Items with Quantity & Price)
+-- -----------------------------------------------------------------------------
+CREATE TABLE pharmacy_bill_items (
+    bill_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    pharmacy_bill_id INT NOT NULL,
+    medicine_id INT NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    CONSTRAINT fk_pitem_bill FOREIGN KEY (pharmacy_bill_id) REFERENCES pharmacy_bills(pharmacy_bill_id) ON DELETE CASCADE,
+    CONSTRAINT fk_pitem_medicine FOREIGN KEY (medicine_id) REFERENCES medicines(medicine_id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 27. Pharmacy Payments (Payments for Dispensary Orders)
+-- -----------------------------------------------------------------------------
+CREATE TABLE pharmacy_payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    pharmacy_bill_id INT NOT NULL,
+    payment_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    amount_paid DECIMAL(10,2) NOT NULL,
+    payment_method ENUM('Cash', 'UPI', 'Credit Card', 'Debit Card', 'Net Banking') NOT NULL,
+    reference_number VARCHAR(100) NULL,
+    CONSTRAINT fk_ppay_bill FOREIGN KEY (pharmacy_bill_id) REFERENCES pharmacy_bills(pharmacy_bill_id) ON DELETE CASCADE
+) ENGINE=InnoDB;

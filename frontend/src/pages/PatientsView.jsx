@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Plus, UserPlus, Phone, Mail, AlertTriangle, ShieldCheck, MapPin } from 'lucide-react';
+import { Users, Search, Plus, UserPlus, Phone, Mail, AlertTriangle, ShieldCheck, MapPin, X } from 'lucide-react';
 import { getPatients, createPatient, getPincodes, getPatientAllergies } from '../api';
 
 export default function PatientsView() {
@@ -107,7 +107,7 @@ export default function PatientsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Patient Directory & Registration</h1>
-          <p className="text-sm text-slate-500 mt-1">3NF Normalized addresses mapped via Postal Master ($Pincode \to City, State$)</p>
+          <p className="text-sm text-slate-500 mt-1">Comprehensive patient registry, demographic details, and address records</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -172,7 +172,7 @@ export default function PatientsView() {
                   <th className="px-4 py-3">Demographics</th>
                   <th className="px-4 py-3">Aadhaar (Unique)</th>
                   <th className="px-4 py-3">Contact</th>
-                  <th className="px-4 py-3">Address (3NF Decomposed)</th>
+                  <th className="px-4 py-3">Residential Address</th>
                   <th className="px-4 py-3 text-right">Medical Alerts</th>
                 </tr>
               </thead>
@@ -226,7 +226,9 @@ export default function PatientsView() {
           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 border border-slate-100 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h2 className="text-lg font-bold text-slate-900">Register New Patient</h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             {regError && (
@@ -324,7 +326,7 @@ export default function PatientsView() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Postal Pincode (3NF Master) *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Postal Pincode *</label>
                 <select
                   required
                   value={regData.pincode}
@@ -407,7 +409,9 @@ export default function PatientsView() {
                 <AlertTriangle className="w-5 h-5 text-amber-500" />
                 Allergy Profile: {allergyPatientName}
               </h2>
-              <button onClick={() => setActiveAllergies(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button onClick={() => setActiveAllergies(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <div className="mt-4 space-y-2">

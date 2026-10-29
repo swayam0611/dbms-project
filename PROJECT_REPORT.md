@@ -69,6 +69,14 @@ erDiagram
     MEDICINES ||--o{ PRESCRIPTION_ITEMS : "SPECIFIES"
 
     MEDICINES ||--|| PHARMACY_INVENTORY : "TRACKS STOCK (1:1)"
+    MEDICINES ||--o{ PHARMACY_BILL_ITEMS : "DISPENSED IN"
+
+    PRESCRIPTIONS ||--o{ PHARMACY_BILLS : "FULFILLED BY"
+    PATIENTS ||--o{ PHARMACY_BILLS : "BILLED TO"
+    DOCTORS ||--o{ PHARMACY_BILLS : "PRESCRIBED BY"
+
+    PHARMACY_BILLS ||--o{ PHARMACY_BILL_ITEMS : "CONTAINS"
+    PHARMACY_BILLS ||--o{ PHARMACY_PAYMENTS : "RECORDED IN"
 
     BILLINGS ||--o{ PAYMENTS : "RECORDED IN"
 ```
@@ -153,6 +161,9 @@ The original conceptual schema contained several classic normalization flaws. Ea
 | 22 | `prescription_items` | `prescription_item_id` | `prescription_id`, `medicine_id` | Prescribed dosages & durations |
 | 23 | `billings` | `billing_id` | `patient_id`, `appointment_id`, `admission_id` | Inpatient/OPD invoices |
 | 24 | `payments` | `transaction_id` | `billing_id` $\to$ `billings` | Financial audit transactions |
+| 25 | `pharmacy_bills` | `pharmacy_bill_id` | `patient_id`, `doctor_id`, `prescription_id` | Dedicated pharmacy dispensing invoices |
+| 26 | `pharmacy_bill_items` | `bill_item_id` | `pharmacy_bill_id`, `medicine_id` | Dispensed medicines with quantities & unit prices |
+| 27 | `pharmacy_payments` | `payment_id` | `pharmacy_bill_id` $\to$ `pharmacy_bills` | Pharmacy payment audit records |
 
 ---
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, Calendar, BedDouble, Stethoscope, 
-  Users, UserCheck, Pill, Receipt, Database, CheckCircle2 
+  Users, UserCheck, Pill, Receipt, Activity, ShoppingCart, 
+  FileText, Building2, ChevronDown, ChevronRight, CheckCircle2 
 } from 'lucide-react';
 
 import DashboardView from './pages/DashboardView';
@@ -11,76 +12,127 @@ import ClinicalView from './pages/ClinicalView';
 import PatientsView from './pages/PatientsView';
 import DoctorsView from './pages/DoctorsView';
 import PharmacyView from './pages/PharmacyView';
+import PharmacyPOSView from './pages/PharmacyPOSView';
+import PharmacySalesView from './pages/PharmacySalesView';
 import BillingView from './pages/BillingView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [hospitalOpen, setHospitalOpen] = useState(true);
+  const [pharmaOpen, setPharmaOpen] = useState(true);
 
-  const navigation = [
+  const hospitalNav = [
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
-    { id: 'appointments', name: 'Appointments', icon: Calendar },
-    { id: 'beds', name: 'Beds & Wards', icon: BedDouble },
-    { id: 'clinical', name: 'Consultations', icon: Stethoscope },
-    { id: 'patients', name: 'Patients', icon: Users },
-    { id: 'doctors', name: 'Doctors & Staff', icon: UserCheck },
-    { id: 'pharmacy', name: 'Pharmacy Stock', icon: Pill },
-    { id: 'billing', name: 'Billing & Ledger', icon: Receipt },
+    { id: 'appointments', name: 'Appointments & OPD', icon: Calendar },
+    { id: 'clinical', name: 'Doctor Consultations', icon: Stethoscope },
+    { id: 'beds', name: 'Inpatient & Beds', icon: BedDouble },
+    { id: 'patients', name: 'Patient Directory', icon: Users },
+    { id: 'doctors', name: 'Doctors & Specialists', icon: UserCheck },
+    { id: 'billing', name: 'Hospital Invoicing', icon: Receipt },
+  ];
+
+  const pharmaNav = [
+    { id: 'pharmacy_pos', name: 'Dispense & Billing', icon: ShoppingCart },
+    { id: 'pharmacy', name: 'Stock & Formulary', icon: Pill },
+    { id: 'pharmacy_sales', name: 'Pharmacy Sales', icon: FileText },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans">
       {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 bg-slate-900 text-white shrink-0 flex flex-col justify-between">
+      <aside className="w-full md:w-64 bg-slate-900 text-white shrink-0 flex flex-col justify-between select-none">
         <div>
-          {/* Logo / Brand */}
+          {/* Logo / Brand Header */}
           <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center font-black text-white shadow-lg">
-              <Database className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center font-bold text-white shadow-md">
+              <Activity className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-sm tracking-wide text-white">APEX HOSPITAL</h1>
-              <p className="text-[11px] text-sky-400 font-medium tracking-tight">DBMS 3NF Project</p>
+              <h1 className="font-bold text-sm tracking-wide text-white">HEALTHCARE OS</h1>
+              <p className="text-[11px] text-slate-400 font-medium">Hospital & Pharmacy Suite</p>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
-                    isActive 
-                      ? 'bg-sky-600 text-white shadow-sm' 
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.name}</span>
-                </button>
-              );
-            })}
-          </nav>
+          <div className="p-3 space-y-4">
+            {/* PARTITION 1: HOSPITAL OPERATIONS */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setHospitalOpen(!hospitalOpen)}
+                className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition"
+              >
+                <span>Hospital Operations</span>
+                {hospitalOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              </button>
+
+              {hospitalOpen && (
+                <nav className="mt-1 space-y-0.5">
+                  {hospitalNav.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition ${
+                          isActive 
+                            ? 'bg-sky-600 text-white font-semibold shadow-sm' 
+                            : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{item.name}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              )}
+            </div>
+
+            {/* PARTITION 2: PHARMACY & DISPENSARY */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setPharmaOpen(!pharmaOpen)}
+                className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition"
+              >
+                <span>Pharmacy & Dispensary</span>
+                {pharmaOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              </button>
+
+              {pharmaOpen && (
+                <nav className="mt-1 space-y-0.5">
+                  {pharmaNav.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition ${
+                          isActive 
+                            ? 'bg-emerald-600 text-white font-semibold shadow-sm' 
+                            : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{item.name}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Database Status footer */}
-        <div className="p-4 m-3 bg-slate-800/80 rounded-xl border border-slate-700/60 text-xs">
-          <div className="flex items-center gap-2 text-emerald-400 font-semibold mb-1">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>MySQL 9.0 (InnoDB)</span>
+        {/* System Status Footer */}
+        <div className="p-4 m-3 bg-slate-800/60 rounded-xl border border-slate-700/50 text-xs">
+          <div className="flex items-center gap-2 text-emerald-400 font-medium mb-0.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Hospital Services Online</span>
           </div>
-          <p className="text-[11px] text-slate-400">Strict 3NF Schema with ACID Concurrency & Row Locks</p>
-          <a 
-            href="http://localhost:8000/docs" 
-            target="_blank" 
-            rel="noreferrer"
-            className="mt-2 block text-center py-1 bg-slate-700 hover:bg-slate-600 rounded text-[11px] font-semibold text-sky-300 transition"
-          >
-            Swagger API Docs ↗
-          </a>
+          <p className="text-[11px] text-slate-400">All wards, OPD clinics, and dispensary terminals active</p>
         </div>
       </aside>
 
@@ -89,12 +141,14 @@ export default function App() {
         <div className="max-w-7xl mx-auto">
           {activeTab === 'dashboard' && <DashboardView onNavigate={(tab) => setActiveTab(tab)} />}
           {activeTab === 'appointments' && <AppointmentsView />}
-          {activeTab === 'beds' && <BedsWardView />}
           {activeTab === 'clinical' && <ClinicalView />}
+          {activeTab === 'beds' && <BedsWardView />}
           {activeTab === 'patients' && <PatientsView />}
           {activeTab === 'doctors' && <DoctorsView />}
-          {activeTab === 'pharmacy' && <PharmacyView />}
           {activeTab === 'billing' && <BillingView />}
+          {activeTab === 'pharmacy_pos' && <PharmacyPOSView />}
+          {activeTab === 'pharmacy' && <PharmacyView />}
+          {activeTab === 'pharmacy_sales' && <PharmacySalesView />}
         </div>
       </main>
     </div>

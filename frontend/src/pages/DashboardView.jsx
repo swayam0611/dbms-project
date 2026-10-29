@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, UserCheck, BedDouble, Calendar, 
-  AlertTriangle, DollarSign, Activity, CheckCircle2, RefreshCw
+  AlertTriangle, DollarSign, Activity, CheckCircle2, RefreshCw,
+  Building2, Clock, ShieldAlert, HeartPulse
 } from 'lucide-react';
 import { getDashboardStats, getDeptDistribution } from '../api';
 
@@ -42,10 +43,10 @@ export default function DashboardView({ onNavigate }) {
   const statCards = [
     { label: 'Registered Patients', val: stats.total_patients, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', nav: 'patients' },
     { label: 'Active Doctors', val: stats.total_doctors, icon: UserCheck, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', nav: 'doctors' },
-    { label: 'Bed Occupancy', val: `${stats.bed_occupancy_rate}%`, sub: `${stats.occupied_beds} / ${stats.total_beds} beds`, icon: BedDouble, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', nav: 'beds' },
-    { label: 'Scheduled Today', val: stats.scheduled_appointments, sub: `${stats.completed_appointments} completed`, icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', nav: 'appointments' },
-    { label: 'Low Stock Medicines', val: stats.low_stock_medicines, sub: 'Needs restocking', icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100', nav: 'pharmacy' },
-    { label: 'Revenue Collected', val: `₹${stats.total_revenue_collected.toLocaleString()}`, sub: `₹${stats.pending_revenue.toLocaleString()} pending`, icon: DollarSign, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-100', nav: 'billing' },
+    { label: 'Bed Occupancy', val: `${stats.bed_occupancy_rate}%`, sub: `${stats.occupied_beds} of ${stats.total_beds} beds in use`, icon: BedDouble, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', nav: 'beds' },
+    { label: 'Scheduled Appointments', val: stats.scheduled_appointments, sub: `${stats.completed_appointments} completed consultations`, icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', nav: 'appointments' },
+    { label: 'Low Stock Medicines', val: stats.low_stock_medicines, sub: 'Requires replenishment', icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100', nav: 'pharmacy_inventory' },
+    { label: 'Hospital Revenue', val: `₹${stats.total_revenue_collected.toLocaleString()}`, sub: `₹${stats.pending_revenue.toLocaleString()} pending settlement`, icon: DollarSign, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-100', nav: 'billing' },
   ];
 
   return (
@@ -53,14 +54,14 @@ export default function DashboardView({ onNavigate }) {
       <div className="flex items-center justify-between pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Hospital Administration Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-1">Live metrics, inpatient capacity, OPD schedules, and pharmacy inventory</p>
+          <p className="text-sm text-slate-500 mt-1">Real-time overview of clinic operations, inpatient occupancy, and pharmacy stock</p>
         </div>
         <button 
           onClick={fetchData} 
           className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition"
         >
           <RefreshCw className="w-4 h-4" />
-          Refresh
+          Refresh Data
         </button>
       </div>
 
@@ -87,56 +88,32 @@ export default function DashboardView({ onNavigate }) {
         })}
       </div>
 
-      {/* Two Column Grid */}
+      {/* Operational Highlights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Department Doctor Distribution */}
+        {/* Department Specialist Breakdown */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 flex items-center gap-2">
               <Activity className="w-4 h-4 text-sky-600" />
-              Specialist Distribution by Department
+              Specialist Doctors by Department
             </h3>
-            <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2 py-1 rounded">20 Active Specialities</span>
+            <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md">20 Clinical Departments</span>
           </div>
           <div className="space-y-3">
             {deptDist.slice(0, 7).map((d, idx) => (
               <div key={idx} className="flex items-center justify-between text-sm">
                 <span className="text-slate-700 font-medium">{d.department}</span>
                 <div className="flex items-center gap-3">
-                  <div className="w-32 bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="w-32 bg-slate-100 h-2 rounded-full overflow-hidden">
                     <div 
                       className="bg-sky-500 h-full rounded-full" 
                       style={{ width: `${Math.min(100, (d.count / 3) * 100)}%` }}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-slate-600 w-8 text-right">{d.count} doc{d.count > 1 ? 's' : ''}</span>
+                  <span className="text-xs font-semibold text-slate-600 w-12 text-right">{d.count} {d.count === 1 ? 'doc' : 'docs'}</span>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* DBMS System Integrity & ACID Status */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="font-semibold text-slate-900 flex items-center gap-2 mb-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              DBMS 3NF & ACID Concurrency Guarantees
-            </h3>
-            <div className="space-y-3 text-sm text-slate-600">
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <span className="font-semibold text-slate-800">3NF Decomposition:</span>
-                <p className="text-xs text-slate-500 mt-0.5">Address components factored via Pincode master ($Pincode \to City, State$); ICD-10 disease dictionary removes disease name redundancy from diagnosis.</p>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <span className="font-semibold text-slate-800">Pessimistic Row Locking:</span>
-                <p className="text-xs text-slate-500 mt-0.5"><code className="text-sky-700 font-mono">SELECT ... FOR UPDATE</code> enforces atomic bed assignments and eliminates race conditions in concurrent admissions.</p>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <span className="font-semibold text-slate-800">Connection Pooling:</span>
-                <p className="text-xs text-slate-500 mt-0.5">SQLAlchemy QueuePool (size: 10, overflow: 20, recycle: 1800s) prevents MySQL connection exhaustion during high concurrent load.</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

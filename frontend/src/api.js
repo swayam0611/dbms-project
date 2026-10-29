@@ -9,6 +9,7 @@ const api = axios.create({
   },
 });
 
+// Analytics
 export const getDashboardStats = () => api.get('/analytics/dashboard');
 export const getDeptDistribution = () => api.get('/analytics/department-distribution');
 
@@ -21,6 +22,7 @@ export const getPincodes = () => api.get('/hospitals/pincodes');
 // Doctors & Employees
 export const getDoctors = (params) => api.get('/doctors', { params });
 export const getDoctorById = (id) => api.get(`/doctors/${id}`);
+export const createDoctor = (data) => api.post('/doctors', data);
 
 // Patients
 export const getPatients = (params) => api.get('/patients', { params });
@@ -42,12 +44,19 @@ export const getDiseases = (params) => api.get('/clinical/diseases', { params })
 export const recordConsultation = (data) => api.post('/clinical/consultations', data);
 export const getConsultationDetails = (apptId) => api.get(`/clinical/consultations/${apptId}`);
 
-// Pharmacy
+// Pharmacy Inventory
 export const getMedicines = (params) => api.get('/pharmacy/medicines', { params });
+export const addMedicine = (data) => api.post('/pharmacy/medicines', data);
 export const getInventory = (lowStockOnly) => api.get('/pharmacy/inventory', { params: { low_stock_only: lowStockOnly } });
 export const restockMedicine = (medicineId, qty) => api.put(`/pharmacy/inventory/${medicineId}/restock`, { quantity: qty });
 
-// Billing
+// Pharmacy Billing & Dispensing
+export const getPharmacyBills = (params) => api.get('/pharmacy/bills', { params });
+export const getPharmacyBillById = (id) => api.get(`/pharmacy/bills/${id}`);
+export const createPharmacyBill = (data) => api.post('/pharmacy/bills', data);
+export const getPatientPrescriptions = (patientId) => api.get(`/pharmacy/prescriptions/patient/${patientId}`);
+
+// Hospital Billing & Invoices
 export const getBills = (params) => api.get('/billing', { params });
 export const recordPayment = (data) => api.post('/billing/payments', data);
 

@@ -1,7 +1,7 @@
 import os
 
 class Settings:
-    PROJECT_NAME: str = "Hospital Management System API (DBMS 3NF Project)"
+    PROJECT_NAME: str = "Hospital & Pharmacy Management System API"
     VERSION: str = "1.0.0"
     API_PREFIX: str = "/api"
     

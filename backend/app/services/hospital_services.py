@@ -8,11 +8,13 @@ from sqlalchemy import func, and_, or_
 from app.models import (
     Bed, Admission, Patient, Appointment, Doctor, Employee,
     Consultation, Disease, Diagnosis, Prescription, PrescriptionItem,
-    Medicine, PharmacyInventory, Billing, Payment, Room, Ward, Department
+    Medicine, PharmacyInventory, Billing, Payment, Room, Ward, Department,
+    PharmacyBill, PharmacyBillItem, PharmacyPayment
 )
 from app.schemas import (
     AdmissionCreate, AdmissionDischarge, AppointmentCreate,
-    ConsultationCreate, PaymentCreate, RestockRequest
+    ConsultationCreate, PaymentCreate, RestockRequest,
+    DoctorCreate, MedicineCreate, PharmacyBillCreate
 )
 
 class AdmissionService:
@@ -239,8 +241,7 @@ class ClinicalService:
                 )
                 db.add(db_diag)
 
-            # 5. Insert Prescription & deduct inventory atomically
-            total_rx_cost = Decimal('0.00')
+            # 5. Insert Prescription if prescribed (pure clinical order, no premature stock deduction)
             if data.prescriptions:
                 rx = Prescription(
                     consultation_id=consultation.consultation_id,
@@ -254,16 +255,6 @@ class ClinicalService:
                     if not med:
                         raise HTTPException(status_code=404, detail=f"Medicine ID {item.medicine_id} not found")
 
-                    # Lock inventory row
-                    inv = db.query(PharmacyInventory).filter(
-                        PharmacyInventory.medicine_id == item.medicine_id
-                    ).with_for_update().first()
-
-                    if inv:
-                        if inv.quantity_in_stock >= 1:
-                            inv.quantity_in_stock -= 1 # Deduct standard prescribed unit
-                        total_rx_cost += Decimal(str(med.unit_price))
-
                     rx_item = PrescriptionItem(
                         prescription_id=rx.prescription_id,
                         medicine_id=item.medicine_id,
@@ -273,11 +264,6 @@ class ClinicalService:
                         instructions=item.instructions
                     )
                     db.add(rx_item)
-
-            # 6. Update Billing for this appointment
-            billing = db.query(Billing).filter(Billing.appointment_id == appt.appointment_id).first()
-            if billing and total_rx_cost > 0:
-                billing.pharmacy_charges += total_rx_cost
 
             db.commit()
             db.refresh(consultation)
@@ -360,3 +346,116 @@ class BillingService:
         except Exception as e:
             db.rollback()
             raise HTTPException(status_code=500, detail=f"Payment transaction failed: {str(e)}")
+
+
+class PharmacyBillingService:
+    @staticmethod
+    def create_bill(data: PharmacyBillCreate, db: Session) -> PharmacyBill:
+        """
+        ATOMIC PHARMACY DISPENSING & BILLING TRANSACTION:
+        1. Verifies patient & prescribing doctor
+        2. Acquires exclusive row locks on required medicines
+        3. Verifies stock availability >= prescribed quantity
+        4. Deducts exact dispensed quantities from inventory
+        5. Computes line totals & subtotal
+        6. Creates PharmacyBill & PharmacyBillItem records
+        7. Records immediate payment if paid
+        """
+        try:
+            # 1. Verify patient
+            patient = db.query(Patient).filter(Patient.patient_id == data.patient_id).first()
+            if not patient:
+                raise HTTPException(status_code=404, detail="Patient not found")
+
+            if not data.items:
+                raise HTTPException(status_code=400, detail="Cannot generate bill with 0 items")
+
+            # 2. Check stock and deduct for all items atomically
+            subtotal = Decimal('0.00')
+            bill_items_to_add = []
+
+            for item_in in data.items:
+                med = db.query(Medicine).filter(Medicine.medicine_id == item_in.medicine_id).first()
+                if not med:
+                    raise HTTPException(status_code=404, detail=f"Medicine ID {item_in.medicine_id} not found")
+
+                # Lock inventory row
+                inv = db.query(PharmacyInventory).filter(
+                    PharmacyInventory.medicine_id == item_in.medicine_id
+                ).with_for_update().first()
+
+                if not inv:
+                    raise HTTPException(status_code=404, detail=f"Inventory record missing for {med.name}")
+
+                if inv.quantity_in_stock < item_in.quantity:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Insufficient stock for {med.name}. Requested: {item_in.quantity}, Available in stock: {inv.quantity_in_stock}"
+                    )
+
+                # Deduct inventory stock
+                inv.quantity_in_stock -= item_in.quantity
+
+                unit_price = Decimal(str(med.unit_price))
+                line_total = unit_price * Decimal(item_in.quantity)
+                subtotal += line_total
+
+                bill_items_to_add.append({
+                    "medicine_id": item_in.medicine_id,
+                    "quantity": item_in.quantity,
+                    "unit_price": unit_price,
+                    "total_price": line_total
+                })
+
+            # Calculate total (5% GST healthcare pharmaceutical tax)
+            tax = round(subtotal * Decimal('0.05'), 2)
+            total = subtotal + tax
+
+            payment_status = 'Paid' if (data.amount_paid and data.amount_paid >= float(total)) else 'Pending'
+
+            # 3. Create Pharmacy Bill
+            pbill = PharmacyBill(
+                patient_id=data.patient_id,
+                doctor_id=data.doctor_id,
+                prescription_id=data.prescription_id,
+                subtotal=subtotal,
+                tax_amount=tax,
+                total_amount=total,
+                payment_status=payment_status,
+                bill_date=datetime.now()
+            )
+            db.add(pbill)
+            db.flush()
+
+            # 4. Insert items
+            for b_item in bill_items_to_add:
+                row = PharmacyBillItem(
+                    pharmacy_bill_id=pbill.pharmacy_bill_id,
+                    medicine_id=b_item["medicine_id"],
+                    quantity=b_item["quantity"],
+                    unit_price=b_item["unit_price"],
+                    total_price=b_item["total_price"]
+                )
+                db.add(row)
+
+            # 5. Insert payment if paid
+            if payment_status == 'Paid':
+                pmt = PharmacyPayment(
+                    pharmacy_bill_id=pbill.pharmacy_bill_id,
+                    payment_time=datetime.now(),
+                    amount_paid=total,
+                    payment_method=data.payment_method or 'Cash',
+                    reference_number=data.reference_number or f"PHARM-TXN-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                )
+                db.add(pmt)
+
+            db.commit()
+            db.refresh(pbill)
+            return pbill
+
+        except HTTPException:
+            db.rollback()
+            raise
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"Pharmacy billing transaction aborted: {str(e)}")

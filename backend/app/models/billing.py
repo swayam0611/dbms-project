@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Enum as SQLEnum, func
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Enum as SQLEnum, func, Computed
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -13,8 +13,11 @@ class Billing(Base):
     bed_charges = Column(Numeric(10, 2), default=0.00)
     pharmacy_charges = Column(Numeric(10, 2), default=0.00)
     other_charges = Column(Numeric(10, 2), default=0.00)
-    # total_amount is a stored generated column in MySQL, mapped here as Column for read/write
-    total_amount = Column(Numeric(10, 2))
+    # Stored generated column in MySQL - marked as Computed so SQLAlchemy never includes it in INSERT/UPDATE
+    total_amount = Column(
+        Numeric(10, 2),
+        Computed("consultation_fee + bed_charges + pharmacy_charges + other_charges")
+    )
     payment_status = Column(SQLEnum('Pending', 'Partially_Paid', 'Paid', 'Refunded'), default='Pending')
     billing_date = Column(DateTime, default=func.now())
 

@@ -274,12 +274,9 @@ export default function BedsWardView() {
                 </select>
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 space-y-1">
-                <div className="flex items-center gap-1 font-semibold text-slate-800">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  ACID Concurrency Guarantee:
-                </div>
-                <p>The backend issues an exclusive row lock (<code className="font-mono text-sky-700">SELECT ... FOR UPDATE</code>) on this bed before mutating its status to Occupied, preventing simultaneous assignments.</p>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
+                <span className="font-semibold text-slate-800">Bed Allocation Notice:</span>
+                <p className="mt-0.5 text-slate-500">Upon confirmation, the patient will be assigned and the bed status will be updated to Occupied across all terminals.</p>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">

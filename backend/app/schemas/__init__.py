@@ -51,6 +51,24 @@ class BedResponse(BaseModel):
 # ------------------------------------------------------------------------------
 # Employee & Doctor Schemas
 # ------------------------------------------------------------------------------
+class DoctorCreate(BaseModel):
+    name: str
+    email: str
+    phone: str
+    salary: float = 180000.00
+    dob: date
+    gender: str
+    joining_date: Optional[date] = None
+    qualification: str
+    shift: str = "Morning"
+    street_address: str
+    pincode: str
+    department_id: int
+    license_number: str
+    specialisation: str
+    experience_years: int = 0
+    consultation_fee: float = 800.00
+
 class DoctorSummaryResponse(BaseModel):
     doctor_id: int
     name: str
@@ -208,8 +226,18 @@ class DiseaseResponse(BaseModel):
         from_attributes = True
 
 # ------------------------------------------------------------------------------
-# Pharmacy Inventory Schemas
+# Pharmacy Inventory & Dispensing Schemas
 # ------------------------------------------------------------------------------
+class MedicineCreate(BaseModel):
+    name: str
+    strength: str
+    form: str = "Tablet"
+    unit_price: float = Field(..., gt=0)
+    manufacturer: str
+    initial_quantity: int = Field(100, ge=0)
+    reorder_level: int = Field(20, ge=1)
+    unit_cost: Optional[float] = None
+
 class MedicineResponse(BaseModel):
     medicine_id: int
     name: str
@@ -239,6 +267,72 @@ class PharmacyInventoryResponse(BaseModel):
 
 class RestockRequest(BaseModel):
     quantity: int = Field(..., gt=0, description="Quantity to add to inventory")
+
+# ------------------------------------------------------------------------------
+# Pharmacy Billing & Dispensing Schemas
+# ------------------------------------------------------------------------------
+class PharmacyBillItemInput(BaseModel):
+    medicine_id: int
+    quantity: int = Field(..., gt=0)
+
+class PharmacyBillCreate(BaseModel):
+    patient_id: int
+    doctor_id: Optional[int] = None
+    prescription_id: Optional[int] = None
+    items: List[PharmacyBillItemInput]
+    payment_method: str = "Cash"
+    amount_paid: Optional[float] = None
+    reference_number: Optional[str] = None
+
+class PharmacyBillItemDetail(BaseModel):
+    bill_item_id: int
+    medicine_id: int
+    medicine_name: str
+    strength: str
+    form: str
+    quantity: int
+    unit_price: float
+    total_price: float
+
+    class Config:
+        from_attributes = True
+
+class PharmacyBillResponse(BaseModel):
+    pharmacy_bill_id: int
+    patient_id: int
+    patient_name: str
+    patient_phone: str
+    doctor_id: Optional[int] = None
+    doctor_name: Optional[str] = None
+    prescription_id: Optional[int] = None
+    subtotal: float
+    tax_amount: float
+    total_amount: float
+    payment_status: str
+    bill_date: datetime
+    items_count: int
+
+    class Config:
+        from_attributes = True
+
+class PharmacyBillDetailResponse(PharmacyBillResponse):
+    items: List[PharmacyBillItemDetail] = []
+
+class PharmacyPaymentCreate(BaseModel):
+    amount_paid: float = Field(..., gt=0)
+    payment_method: str
+    reference_number: Optional[str] = None
+
+class PharmacyPaymentResponse(BaseModel):
+    payment_id: int
+    pharmacy_bill_id: int
+    payment_time: datetime
+    amount_paid: float
+    payment_method: str
+    reference_number: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 # ------------------------------------------------------------------------------
 # Billing & Payment Schemas
